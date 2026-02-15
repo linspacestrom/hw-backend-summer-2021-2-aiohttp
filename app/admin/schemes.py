@@ -1,5 +1,11 @@
-from marshmallow import Schema
+from marshmallow import Schema, fields
 
 
 class AdminSchema(Schema):
-    pass
+    email = fields.Str(required=True)
+
+class AdminRequestSchema(AdminSchema):
+    password = fields.Str(required=True)
+
+class AdminResponseSchema(AdminSchema):
+    id = fields.Int(required=True)

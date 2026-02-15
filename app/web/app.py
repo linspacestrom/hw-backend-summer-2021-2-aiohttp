@@ -4,6 +4,10 @@ from aiohttp.web import (
     View as AiohttpView,
 )
 
+from aiohttp_session import setup as setup_session
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from aiohttp_apispec import setup_aiohttp_apispec
+
 from app.admin.models import Admin
 from app.store import Store, setup_store
 from app.store.database.database import Database
@@ -47,6 +51,20 @@ app = Application()
 def setup_app(config_path: str) -> Application:
     setup_logging(app)
     setup_config(app, config_path)
+    if app.config and app.config.session:
+        import base64
+        import hashlib
+
+        try:
+            key = base64.b64decode(app.config.session.key)
+        except Exception:
+            key = app.config.session.key.encode()
+
+        if len(key) != 32:
+            key = hashlib.sha256(key).digest()
+
+        setup_session(app, EncryptedCookieStorage(key))
+    setup_aiohttp_apispec(app, title="hw", version="1.0", url="/api/docs/swagger.json")
     setup_routes(app)
     setup_middlewares(app)
     setup_store(app)
